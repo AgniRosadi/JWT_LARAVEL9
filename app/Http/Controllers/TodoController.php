@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 use App\Models\Todo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class TodoController extends Controller
 {
@@ -23,14 +25,43 @@ class TodoController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = DB::table('todos')->get();
+        $title = [];
+        $desc = [];
+        foreach ($data as $res)
+        {
+            $title = $res->title;
+            $desc = $res->description;
+        }
+
+        $response = response()->json([
+            'status' => 'error',
+            'message' => 'Error, Data can not be empty',
+            'error_code' => 400
+        ]);
+
+        $rules =([
             'title' => 'required|string|max:255',
             'description' => 'required|string|max:255',
         ]);
+        
+
+        $validator = Validator::make($request->all(), $rules);
+        if($validator->fails()){
+            return $response;
+        }
+
+        if($title == $request->title || $desc == $request->title){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error, Data already exists',
+                'error_code' => 401
+            ]);
+        }
 
         $todo = Todo::create([
             'title' => $request->title,
-            'decription' => $request->description
+            'description' => $request->description
         ]);
 
         return response()->json([

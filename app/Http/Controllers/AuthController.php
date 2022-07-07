@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+
+
 class AuthController extends Controller
 {
     //
@@ -56,17 +59,21 @@ class AuthController extends Controller
         foreach ($users as $user)
         {
             $tes = $user->email;
-            // var_dump($user->name);
         }
-        //validasi data mandatory
-        $cek = $request->validate([
+        $rules =([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6',
         ]);
-        
-        // print_r($tes);
-        // exit();
+        $response = response()->json([
+            'status' => 'error',
+            'message' => 'Error, Data can not be empty',
+            'error_code' => 400
+        ]);
+        $validator = Validator::make($request->all(), $rules);
+        if($validator->fails()){
+            return $response;
+        }
         
         if($email == $tes){
             return response()->json([
